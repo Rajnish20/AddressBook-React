@@ -39,7 +39,13 @@ const Display = (props) => {
 }
 
 const deletePerson = (personId) => {
-    
+    new AddressBookService().removePerson(personId)
+    .then(responseText => {
+        window.location.reload();
+        window.alert("Person Removed Successfully");
+    }).catch(error => {
+        console.log("Error while Removing" +JSON.stringify(error));
+    })
 }
 
 const updatePerson =(personId) => {
