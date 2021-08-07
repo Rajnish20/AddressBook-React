@@ -4,10 +4,38 @@ import logo from '../../assets/book.png';
 import addIcon from '../../assets/add-24px.svg';
 
 import {Link, withRouter} from 'react-router-dom';
+import AddressBookService from '../../service/addressbook-service';
+import Display from '../table/table';
 
 
 
-function HomePage(){
+class HomePage extends React.Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            allPersonArray: [],
+            personArray: [],
+          };
+        this.addressBookService = new AddressBookService();
+    }
+
+componentDidMount(){
+    this.getPersonList();
+}
+
+getPersonList = () => {
+    this.addressBookService.getAllPerson()
+    .then(responseDTO => {
+        let responseData = responseDTO.data;
+      console.log("Data received after GET Call :\n" + responseData.data);
+      this.setState({allPersonArray: responseData.data});
+      this.setState({personArray: responseData.data});
+    }).catch(errror => {
+      console.log("Error while fetching Employee List\nError : " + JSON.stringify(errror));
+    })
+  }
+
+   render(){
     return(
         <div className="body">
         <header className="header-content">
@@ -29,11 +57,12 @@ function HomePage(){
                 </Link>
             </div>
             <div className="table-main">
-                
+                <Display personArray = {this.state.personArray} />
             </div>
         </div>
       </div>
     );
+ }
 }
 
-export default HomePage;
+export default withRouter(HomePage);

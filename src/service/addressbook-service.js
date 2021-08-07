@@ -5,4 +5,8 @@ export default class AddressBookService{
     addPerson(personData){
         return AxiosService.postService(`${this.baseUrl}addressbook/create`, personData);
     }
+
+    getAllPerson() {
+        return AxiosService.getService(`${this.baseUrl}addressbook`);
+    }
 }
