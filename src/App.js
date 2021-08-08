@@ -13,6 +13,7 @@ function App() {
            <Route exact path="/addressBook-form">
              <FormPage/>
            </Route>
+           <Route exact path="/addressbook-form/:id"><FormPage /></Route>
            <Route exact path=""><Redirect exact from="/" to="/home" /></Route>
          </Switch>
         </BrowserRouter>

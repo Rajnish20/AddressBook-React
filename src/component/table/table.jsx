@@ -6,6 +6,9 @@ import {withRouter} from 'react-router-dom';
 import AddressBookService from '../../service/addressbook-service';
 
 const Display = (props) => {
+    const updatePerson = (personId) => {
+        props.history.push(`/addressbook-form/${personId}`);
+    }
     
     return(
         <table id ="display" className="table">
@@ -46,10 +49,6 @@ const deletePerson = (personId) => {
     }).catch(error => {
         console.log("Error while Removing" +JSON.stringify(error));
     })
-}
-
-const updatePerson =(personId) => {
-
 }
 
 export default withRouter(Display);
