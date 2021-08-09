@@ -7,98 +7,87 @@ import { withRouter, Link, useParams} from 'react-router-dom';
 
 
 function Form(props){
-    const[id,setId]=useState("");
-    const[name,setName] = useState("");
-    const[number,setNumber] = useState("");
-    const[address,setAddress] = useState("");
-    const[city,setCity] = useState("");
-    const[state,setState] = useState("");
-    const[pinCode,setPinCode] = useState("");
+    
+    const[form,setForm] = useState({
+      id:'',
+      name:'',
+      address:'',
+      number:'',
+      city:'',
+      state:'',
+      pinCode:'',
+    })
+
     const[nameError,setNameError] =useState("");
     const[numberError,setNumberError] = useState("");
-    const[isError,setErrorStatus]=useState("");
+    const[isErrorForName,setErrorStatus]=useState("");
+    const[isErrorForNumber,setErrorStatusForNumber] = useState("");
     const[isUpdate,setUpdateStatus]=useState("");
 
-    
-    const handleNameChange = (event) => {
-        setName(event.target.value);
-        const nameRegex = RegExp('^[A-Z]{1}[a-zA-Z\\s]{2,}$');
-        if(nameRegex.test(event.target.value)){
-            setNameError('');
-            setErrorStatus(false);
-        }else{
-            setNameError("Invalid Name");
-            setErrorStatus(true);
-        }
-    }
+    useEffect(() => {
+      let id = props.match.params.id;
+      if(id !== undefined && id !==''){
+          new AddressBookService().getPersonById(id)
+          .then(responseDTO => {
+              let responseData = responseDTO.data;
+              setPersonForm(responseData.data);
+              setUpdateStatus(true);
+          }).catch(error => {
+              console.log("Error while Fetching Data");
+          })
+      }
+      
+  },[])
 
-    const handleNumberChange = (event) => {
-        setNumber(event.target.value);
-        const numberRegex = RegExp('\\d{2}\\d{10}');
-        if(numberRegex.test(event.target.value)){
+  const setPersonForm = (personData) => {
+     form.id = personData.personId;
+     form.name = personData.name;
+     form.number = personData.phoneNumber;
+     form.address = personData.address;
+     form.city = personData.city;
+     form.state = personData.state;
+     form.pinCode = personData.pinCode;
+  }
+
+
+    const handleChange = (event) => {
+      setForm({...form,
+        [event.target.name]: event.target.value});
+
+      const nameRegex = RegExp('^[A-Z]{1}[a-zA-Z\\s]{2,}$');  
+      if(nameRegex.test(form.name) || form.name.length === 0 ){
+        setNameError('');
+        setErrorStatus(false);
+      }  
+      else{
+        setNameError("Invalid Name");
+        setErrorStatus(true);
+      }
+      const numberRegex = RegExp('\\d{2}\\d{10}$');
+        if(numberRegex.test(form.number) || form.number.length === 0){
             setNumberError('');
-            setErrorStatus(false);
+            setErrorStatusForNumber(false);
         }else{
             setNumberError("Invalid Phone Number");
-            setErrorStatus(true);
+            setErrorStatusForNumber(true);
         }
     }
 
-    const handleAdddressChange = (event) => {
-        setAddress(event.target.value);
-    }
-
-    const handleCityChange = (event) => {
-        setCity(event.target.value);
-    }
-
-    const handleStateChange = (event) => {
-        setState(event.target.value);
-    }
-
-    const handlePinCodeChange = (event) => {
-        setPinCode(event.target.value);
-    }
-
-    useEffect(() => {
-        let id = props.match.params.id;
-        if(id !== undefined && id !==''){
-            new AddressBookService().getPersonById(id)
-            .then(responseDTO => {
-                let responseData = responseDTO.data;
-                setPersonForm(responseData.data);
-                setUpdateStatus(true);
-            }).catch(error => {
-                console.log("Error while Fetching Data");
-            })
-        }
-    },[])
-
-    const setPersonForm = (personData) => {
-        setId(personData.personId);
-        setName(personData.name);
-        setNumber(personData.phoneNumber);
-        setAddress(personData.address);
-        setCity(personData.city);
-        setState(personData.state);
-        setPinCode(personData.pinCode);
-
-    }
-
+   
     const save = (event) => {
-        event.preventDefault();
-        if(isError){
+      event.preventDefault();
+        if(isErrorForNumber || isErrorForName){
             window.alert("Please Fill correct values")
         }else{
-            let personObject = {
-                personId:id,
-                name: name,
-                phoneNumber:number,
-                address:address,
-                city:city,
-                state:state,
-                pinCode:pinCode,
-            }
+          let personObject = {
+            personId:form.id,
+            name: form.name,
+            phoneNumber:form.number,
+            address:form.address,
+            city:form.city,
+            state:form.state,
+            pinCode:form.pinCode,
+          }
             if(isUpdate){
                 new AddressBookService().updatePerson(personObject).then(responseText => {
                     console.log("Person Data Updated Successfully" + JSON.stringify(responseText.data));
@@ -119,27 +108,21 @@ function Form(props){
         }
     }
 
-    const reset = () => {
-        setName('');
-        setNumber('');
-        setAddress('');
-        setPinCode('');
-        setState('');
-        setCity('');
+    const reset = (event) => {
+      form.name="";
+      form.address="";
+      form.number="";
+      form.city="";
+      form.state="";
+      form.pinCode="";
+      window.location.reload();
     }
-
     
     return (
       <div className="body">
         <header className="header-content">
           <div className="logo-content">
-            <img
-              src={Logo}
-              className="logo-image"
-              width="60"
-              height="55"
-              alt="Address Book Logo"
-            />
+            <img src={Logo} className="logo-image" width="60" height="55" alt="Address Book Logo"/>
             <div>
               <span className="address-text">ADDRESS</span> <br />
               <span className="address-text book">BOOK</span>
@@ -150,80 +133,31 @@ function Form(props){
           <div className="form-head">
             <div className="form-header">PERSON ADDRESS FORM</div>
             <Link to="/home">
-              <img
-                className="cancel-image"
-                src={Cross}
-                width="28"
-                height="28"
-                alt="AddressBook-Logo"
-              />
+              <img className="cancel-image" src={Cross} width="28" height="28" alt="AddressBook-Logo"/>
             </Link>
           </div>
-          <form
-            className="form"
-            action="#"
-            onReset={reset}
-            onSubmit={(event) => save(event)}
-          >
+          <form className="form" action="#" onReset={(event) => reset(event)} onSubmit={(event) => save(event)}>
             <div className="row-content">
-              <label className="label text" for="name">
-                Full Name
-              </label>
-              <input
-                className="input"
-                value={name}
-                type="text"
-                id="name"
-                name="name"
-                placeholder=""
-                required
-                onChange={(event) => handleNameChange(event)}
-              />
-              <error-output className="text-error" name="nameError" for="text">
-                {nameError}
-              </error-output>
+              <label className="label text" for="name">Full Name</label>
+              <input className="input" value={form.name} type="text" id="name" name="name" placeholder=""required
+                onChange={(event) => handleChange(event)} />
+              <error-output className="text-error" name="nameError" for="text">{nameError}</error-output>
             </div>
             <div className="row-content">
-              <label className="label text" for="number">
-                Phone Number
-              </label>
-              <input
-                className="input"
-                value={number}
-                type="text"
-                id="number"
-                name="number"
-                placeholder=""
-                required
-                onChange={(event) => handleNumberChange(event)}
-              />
-              <error-output
-                className="number-error"
-                name="numberError"
-                for="number"
-              >
-                {numberError}
-              </error-output>
+              <label className="label text" for="number">Phone Number</label>
+              <input className="input" value={form.number} type="text" id="number" name="number" placeholder=""required
+                onChange={(event) => handleChange(event)} />
+              <error-output className="number-error" name="numberError" for="number">{numberError}</error-output>
             </div>
             <div className="row-content">
-              <label className="label text" for="address">
-                Address
-              </label>
-              <textarea
-                id="address"
-                value={address}
-                className="input"
-                name="address"
-                placeholder=""
-                onChange={(event) => handleAdddressChange(event)}
-              ></textarea>
+              <label className="label text" for="address">Address</label>
+              <textarea id="address"value={form.address}className="input" name="address"placeholder=""
+                onChange={(event) => handleChange(event)} ></textarea>
             </div>
             <div className="row-content-address">
               <div className="city">
-                <label className="label text" for="City">
-                  City
-                </label>
-                <select id="city" value={city} name="city" onChange={(event) => handleCityChange(event)}>
+                <label className="label text" for="City">City</label>
+                <select id="city" value={form.city} name="city" onChange={(event) => handleChange(event)}  >
                   <option value="" disabled selected>Select City</option>
                   <option value="New Delhi">New Delhi</option>
                   <option value="Srinagar"> Srinagar</option>
@@ -318,88 +252,58 @@ function Form(props){
                 </select>
               </div>
               <div className="state">
-                <label className="label text" for="State">
-                  State
-                </label>
-                <select
-                  id="state"
-                  value={state}
-                  name="state"
-                  onChange={(event) => handleStateChange(event)}
-                >
-                  <option value="" disabled selected>
-                    Select State
-                  </option>
+                <label className="label text" for="State">State</label>
+                <select id="state"value={form.state}name="state"onChange={(event) => handleChange(event)}  >
+                  <option value="" disabled selected>Select State</option>
                   <option value="Delhi">Delhi</option>
                   <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                    <option value="Assam">Assam</option>
-                    <option value="Bihar">Bihar</option>
-                    <option value="Chandigarh">Chandigarh</option>
-                    <option value="Chhattisgarh">Chhattisgarh</option>
-                    <option value="Daman and Diu">Daman and Diu</option>
-                    <option value="Lakshadweep">Lakshadweep</option>
-                    <option value="Puducherry">Puducherry</option>
-                    <option value="Goa">Goa</option>
-                    <option value="Gujarat">Gujarat</option>
-                    <option value="Haryana">Haryana</option>
-                    <option value="Himachal Pradesh">Himachal Pradesh</option>
-                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                    <option value="Jharkhand">Jharkhand</option>
-                    <option value="Karnataka">Karnataka</option>
-                    <option value="Kerala">Kerala</option>
-                    <option value="Madhya Pradesh">Madhya Pradesh</option>
-                    <option value="Maharashtra">Maharashtra</option>
-                    <option value="Manipur">Manipur</option>
-                    <option value="Meghalaya">Meghalaya</option>
-                    <option value="Mizoram">Mizoram</option>
-                    <option value="Nagaland">Nagaland</option>
-                    <option value="Odisha">Odisha</option>
-                    <option value="Punjab">Punjab</option>
-                    <option value="Rajasthan">Rajasthan</option>
-                    <option value="Sikkim">Sikkim</option>
-                    <option value="Tamil Nadu">Tamil Nadu</option>
-                    <option value="Telangana">Telangana</option>
-                    <option value="Tripura">Tripura</option>
-                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                    <option value="Uttarakhand">Uttarakhand</option>
-                    <option value="West Bengal">West Bengal</option>
-                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chandigarh">Chandigarh</option>
+                  <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Daman and Diu">Daman and Diu</option>
+                  <option value="Lakshadweep">Lakshadweep</option>
+                  <option value="Puducherry">Puducherry</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
                 </select>
               </div>
               <div className="pinCode">
-                <label className="label text pinCode-text" for="pinCode">
-                  PinCode
-                </label>
-                <input
-                  className="input-pinCode"
-                  value={pinCode}
-                  type="number"
-                  id="pinCode"
-                  name="pinCode"
-                  placeholder="Enter PinCode"
-                  required
-                  onChange={(event) => {
-                    handlePinCodeChange(event);
-                  }}
-                />
+                <label className="label text pinCode-text" for="pinCode">PinCode</label>
+                <input className="input-pinCode"value={form.pinCode}type="number"id="pinCode"name="pinCode"placeholder="Enter PinCode"required
+                  onChange={(event) => handleChange(event)}  />
               </div>
             </div>
             <div className="button-content">
-              <button
-                type="submit"
-                className="button submitButton"
-                id="submitButton"
-              >
-                Add
-              </button>
-              <button type="reset" className="resetButton button" id="resetBtn">
-                Reset
-              </button>
+              <button type="submit"className="button submitButton"id="submitButton">Add</button>
+              <button type="reset" className="resetButton button" id="resetBtn">Reset</button>
             </div>
           </form>
         </div>
       </div>
     );
 }
-
 export default withRouter(Form);
