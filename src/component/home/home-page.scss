@@ -74,13 +74,12 @@
     text-decoration: none;
     cursor: pointer;
     outline: none;
+    transition: .2s;
 }
 
 .add-button:hover{
     transform: scale(1.1);
-    transition: .2s;
 }
-
 .table-main{
     width: 80%;
     margin: 0 auto;
@@ -132,9 +131,10 @@ td:first-child{
 td img{
     margin-right: 10px;
     cursor: pointer;
+    transition: .2s;
 }
 
 td img:hover{
     transform: scale(2);
-    transition-delay: 1s;
+    
 }

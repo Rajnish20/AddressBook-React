@@ -109,12 +109,6 @@ function Form(props){
     }
 
     const reset = (event) => {
-      form.name="";
-      form.address="";
-      form.number="";
-      form.city="";
-      form.state="";
-      form.pinCode="";
       window.location.reload();
     }
     
